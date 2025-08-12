@@ -20,6 +20,7 @@
 
 #include <pcie_main.h>
 #include <pcie_src.h>
+#include <unistd.h> // For sleep()
 
 App s_app;
 
@@ -483,13 +484,29 @@ gint main (gint argc, gchar *argv[]) {
     app->frame_cnt = 0;
     app->sourceid  = 0;
 
+    int ret_bit = 0;
+    int start_bit = 0;
+    
+        
     /* try to open the file as an mmapped file */
     app->fd = pcie_open();
     if (app->fd < 0) {
       GST_ERROR ("Unable to open device %d", app->fd);
       goto FAIL;
     }
-
+    
+    /* try to wait for start from host*/
+    while(!start_bit) {
+      if (app->fd > 0) {
+          ret_bit = ioctl(app->fd, GET_START, &start_bit);
+          if (ret_bit < 0)
+              printf("unable to run ioctl for start_bit.\n");
+          else
+              printf("start_bit is %d.\n", start_bit);
+		  
+		  sleep(5);
+      }
+    }
     /* get some vitals, this will be used to read data from the mmapped file
 	 * and feed it to pciesrc. */
     app->length  = pcie_get_file_length(app->fd);
