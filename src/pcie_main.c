@@ -22,6 +22,8 @@
 #include <pcie_src.h>
 #include <unistd.h> // For sleep()
 
+#define GET_START           0xd
+
 App s_app;
 
 GST_DEBUG_CATEGORY (pciesrc_sink_debug);
