@@ -496,7 +496,16 @@ gint main (gint argc, gchar *argv[]) {
       GST_ERROR ("Unable to open device %d", app->fd);
       goto FAIL;
     }
-    
+    /* get some vitals, this will be used to read data from the mmapped file
+	 * and feed it to pciesrc. */
+    app->length  = pcie_get_file_length(app->fd);
+    if (app->length <= 0) {
+      GST_ERROR ("Unable to get file_length");
+      goto FAIL;
+    }
+	
+	printf("start_bit is %d.\n", start_bit);
+    printf("app->fd is %d.\n", app->fd);
     /* try to wait for start from host*/
     while(!start_bit) {
       if (app->fd > 0) {
