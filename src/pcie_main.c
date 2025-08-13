@@ -22,7 +22,8 @@
 #include <pcie_src.h>
 #include <unistd.h> // For sleep()
 
-#define GET_START           0xd
+#define GET_START           0x1e
+#define GET_FPS             0xb
 
 App s_app;
 
@@ -488,6 +489,7 @@ gint main (gint argc, gchar *argv[]) {
 
     int ret_bit = 0;
     int start_bit = 0;
+	unsigned int fps;
     
         
     /* try to open the file as an mmapped file */
@@ -503,9 +505,18 @@ gint main (gint argc, gchar *argv[]) {
       GST_ERROR ("Unable to get file_length");
       goto FAIL;
     }
+
+	
+    if (app->fd > 0) {
+        ret_bit = ioctl(app->fd, GET_FPS, &fps);
+		app->fs = fps;
+        if (ret_bit < 0)
+            printf("unable to run ioctl for FPS.\n");
+        else
+            printf("Input FPS is %u\n", fps);
+    }
 	
 	printf("start_bit is %d.\n", start_bit);
-    printf("app->fd is %d.\n", app->fd);
     /* try to wait for start from host*/
     while(!start_bit) {
       if (app->fd > 0) {
