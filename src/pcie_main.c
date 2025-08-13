@@ -509,7 +509,7 @@ gint main (gint argc, gchar *argv[]) {
 	
     if (app->fd > 0) {
         ret_bit = ioctl(app->fd, GET_FPS, &fps);
-		app->fs = fps;
+		app->fps = fps;
         if (ret_bit < 0)
             printf("unable to run ioctl for FPS.\n");
         else
