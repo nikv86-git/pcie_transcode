@@ -22,8 +22,20 @@
 #include <pcie_src.h>
 #include <unistd.h> // For sleep()
 
-#define GET_START           0x1e
-#define GET_FPS             0xb
+
+#define GET_FILE_LENGTH           0x0
+#define GET_ENC_PARAMS            0x1
+#define SET_READ_OFFSET           0x2
+#define SET_WRITE_OFFSET          0x3
+#define SET_READ_TRANSFER_DONE    0x5
+#define CLR_READ_TRANSFER_DONE    0x6
+#define SET_WRITE_TRANSFER_DONE   0x7
+#define CLR_WRITE_TRANSFER_DONE   0x8
+#define GET_RESOLUTION            0x9
+#define GET_MODE                  0xa
+#define GET_FPS                   0xb
+#define GET_FORMAT                0xc
+#define GET_START                 0xf
 
 App s_app;
 
@@ -487,9 +499,9 @@ gint main (gint argc, gchar *argv[]) {
     app->frame_cnt = 0;
     app->sourceid  = 0;
 
-    int ret_bit = 0;
-    int start_bit = 0;
-	unsigned int fps;
+  int ret_bit = 0;
+  int start_bit = 0;
+	unsigned int fps = 0;
     
         
     /* try to open the file as an mmapped file */
@@ -506,17 +518,37 @@ gint main (gint argc, gchar *argv[]) {
       goto FAIL;
     }
 
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+	
+	  printf("Input FPS is %u\n", fps);
+    if (app->fd > 0) {
+      ret_bit = ioctl(app->fd, GET_FPS, &fps);
+		  app->fps = fps;
+      if (ret_bit < 0)
+        printf("unable to run ioctl for FPS.\n");
+      else
+        printf("Input FPS is %u\n", fps);
+    }
+
+    app->length  = pcie_get_file_length(app->fd);
+    if (app->length <= 0) {
+      GST_ERROR ("Unable to get file_length");
+      goto FAIL;
+    }
+    
 	
     if (app->fd > 0) {
-        ret_bit = ioctl(app->fd, GET_FPS, &fps);
-		app->fps = fps;
+        ret_bit = ioctl(app->fd, GET_MODE, &fps);
         if (ret_bit < 0)
-            printf("unable to run ioctl for FPS.\n");
+            printf("unable to run ioctl for input use case type.\n");
         else
-            printf("Input FPS is %u\n", fps);
+            printf("Running %d use case\n", fps);
     }
+    printf("Input FPS is %u\n", fps);
 	
-	printf("start_bit is %d.\n", start_bit);
+	  printf("start_bit is %d.\n", start_bit);
     /* try to wait for start from host*/
     while(!start_bit) {
       if (app->fd > 0) {
@@ -529,6 +561,12 @@ gint main (gint argc, gchar *argv[]) {
 		  sleep(5);
       }
     }
+    
+
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+
     /* get some vitals, this will be used to read data from the mmapped file
 	 * and feed it to pciesrc. */
     app->length  = pcie_get_file_length(app->fd);
