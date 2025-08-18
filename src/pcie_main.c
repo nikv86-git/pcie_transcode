@@ -492,7 +492,13 @@ gint main (gint argc, gchar *argv[]) {
 
     /* get some vitals, this will be used to read data from the mmapped file
 	 * and feed it to pciesrc. */
-    app->length  = pcie_get_file_length(app->fd);
+    while (1) {
+      app->length  = pcie_get_file_length(app->fd);
+      if (app->length != 0) {
+        break;
+      }
+      sleep(5)
+    }
     if (app->length <= 0) {
       GST_ERROR ("Unable to get file_length");
       goto FAIL;
