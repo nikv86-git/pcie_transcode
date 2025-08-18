@@ -497,7 +497,7 @@ gint main (gint argc, gchar *argv[]) {
       if (app->length != 0) {
         break;
       }
-      sleep(5)
+      sleep(5);
     }
     if (app->length <= 0) {
       GST_ERROR ("Unable to get file_length");
